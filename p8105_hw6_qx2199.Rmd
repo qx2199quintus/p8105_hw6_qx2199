@@ -1,5 +1,6 @@
 ---
 title: "P8105_HW#6_qx2199"
+date: "12/08/2020"
 output: github_document
 ---
 
@@ -156,22 +157,22 @@ The birthweight data contains `r baby_df %>% nrow()` rows, `r baby_df %>% ncol()
 
 ###fit a model
 
-Given that pre-pregnancy bmi was calculated by pre-pregnancy height and pre-pregnancy weight, which indicates that these three variables are highly correlated. Therefore, we exclude mheight and ppwt.Also, wtgain was calculated by delwt and ppwt, we could hence exclude delwt. ?????
-fit model: 
-```{r}
-model_build_one = lm(bwt ~ babysex + bhead + blength + fincome + frace + gaweeks + malform + menarche  + momage + mrace + parity + pnumlbw + pnumsga+ ppbmi + smoken + wtgain,  data = baby_df)
+Given that pre-pregnancy bmi was calculated by pre-pregnancy height and pre-pregnancy weight, which indicates that these three variables are highly correlated. Therefore, we exclude mheight and ppwt.Also, wtgain was calculated by delwt and ppwt, we could hence exclude delwt. 
 
-model_build_one %>% 
-broom::tidy() %>% 
-select(term, estimate, p.value) %>% 
-knitr::kable(digits = 4)
+fit model using a stepwise method: 
+
+```{r}
+model_crude = lm(bwt  ~ ., data = baby_df) %>% 
+step(model_crude, direction='backward') 
+
+summary(model_crude)
 ```
-Given that pre-pregnancy bmi was calculated by pre-pregnancy height and pre-pregnancy weight, which indicates that they are highly correlated. Therefore, we exclude mheight and ppwt.  Also, wtgain was calculated by delwt and ppwt, we could hence remove ppwt. 
-from the output, we could see that the variables that we want to include in our model are: `babysex`  `bhead`  `blength` `fincome`  `gaweeks`   `parity` `ppbmi` ` smoken`  `wtgain`
 
+From the output, we could see that the variables that we want to include in our model are: `babysex`  `bhead`  `blength` `delwt` `fincome`  `gaweeks` `mheight` `mrace` `parity` `ppwt` ` smoken`  
 
+####fit the model with these variables:
 ```{r}
-model_fit = lm(bwt ~ babysex + bhead + blength + fincome + gaweeks + parity + ppbmi + smoken + wtgain, data = baby_df) 
+model_fit = lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken, data = baby_df) 
 ```
 
 
@@ -185,8 +186,6 @@ model_fit = lm(bwt ~ babysex + bhead + blength + fincome + gaweeks + parity + pp
   )
 ```
 
-
-#####One using length at birth and gestational age as predictors (main effects only)
 
 
 ```{r}
@@ -223,9 +222,24 @@ rmse_plot =
 rmse_plot
 
 ```
-According to the average RMSE value and the violin plot, the my  model ( `babysex`+ `bhead`+ `blength`+ `fincome`+ `gaweeks`+`parity`+ `ppbmi`+ `smoken`+ `wtgain`) has the lowes residuals. Therefore, it's the best model among the three.The model with only main effects ( `blength` +`gaweeks` ) has the highest residual and hence is the worst one.The model with  length, sex, and all interactions the mig-level of residuals among the three models/ TTherefore, it's the second best model. 
+According to the average RMSE value and the violin plot,  my  model ( `babysex` + `bhead` + `blength`+ `delwt`+ `fincome` +`gaweeks`+ `mheight`+ `mrace`+`parity`+ `ppwt`+` smoken`  ) has the lowes residuals. Therefore, it's the best model among the three.The model with only main effects ( `blength` +`gaweeks` ) has the highest residual and hence is the worst one.The model with  length, sex, and all interactions the medium residuals among the three models. Therefore, it's the second best model. 
 
+#problem 3
 
+load the data 
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+```
 
 
 
