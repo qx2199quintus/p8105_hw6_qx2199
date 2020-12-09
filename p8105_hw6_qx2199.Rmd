@@ -104,33 +104,130 @@ models_results_df %>%
 
 ## Problem 2
 
-Find some residuals
+
 
 ```{r}
-baby_df = 
-  read_csv("./birthweight.csv") %>% 
-#convert numeric to factor
+baby_df = read_csv("./birthweight.csv") %>% 
+ janitor::clean_names() %>% 
+  mutate(
+    babysex = case_when(
+      babysex == "1" ~ "male",
+      babysex == "2" ~ "female",
+      TRUE ~ as.character(babysex)
+    ),
+    frace = case_when(
+      frace == "1" ~ "white",
+      frace == "2" ~ "black",
+      frace == "3" ~ "Asian",
+      frace == "4" ~ "Puerto Rican",
+      frace == "8" ~ "Other",
+      frace == "9" ~ "Unknown",
+      TRUE ~ as.character(frace)
+    ),
+     mrace = case_when(
+      mrace == "1" ~ "white",
+      mrace == "2" ~ "black",
+      mrace == "3" ~ "Asian",
+      mrace == "4" ~ "Puerto Rican",
+      mrace == "8" ~ "Other",
+      mrace == "9" ~ "Unknown",
+      TRUE ~ as.character(mrace)
+      ),
+    malform = case_when(
+      malform == "0" ~ "absent",
+      malform == "1" ~ "present",
+      TRUE ~ as.character(malform)
+       ))
+
+baby_df %>% 
   mutate(
     babysex = as.factor(babysex),
     frace = as.factor(frace),
-    malform = as.factor(malform),
-    mrace = as.factor(mrace)
+    mrace = as.factor(mrace),
+    malform = as.factor(malform)
+    
   )
 baby_df %>% 
   anyNA()
+
 ```
 
-The birthweight data contains `r baby_df %>% nrow()` rows, `r baby_df %>% ncol()` columns, and no missing data
+The birthweight data contains `r baby_df %>% nrow()` rows, `r baby_df %>% ncol()` columns, and no missing data. 
 
 ###fit a model
 
+Given that pre-pregnancy bmi was calculated by pre-pregnancy height and pre-pregnancy weight, which indicates that these three variables are highly correlated. Therefore, we exclude mheight and ppwt.Also, wtgain was calculated by delwt and ppwt, we could hence exclude delwt. ?????
+fit model: 
 ```{r}
-model_fit = lm(bwt ~ gaweeks, data = baby_df)
+model_build_one = lm(bwt ~ babysex + bhead + blength + fincome + frace + gaweeks + malform + menarche  + momage + mrace + parity + pnumlbw + pnumsga+ ppbmi + smoken + wtgain,  data = baby_df)
+
+model_build_one %>% 
+broom::tidy() %>% 
+select(term, estimate, p.value) %>% 
+knitr::kable(digits = 4)
 ```
+Given that pre-pregnancy bmi was calculated by pre-pregnancy height and pre-pregnancy weight, which indicates that they are highly correlated. Therefore, we exclude mheight and ppwt.  Also, wtgain was calculated by delwt and ppwt, we could hence remove ppwt. 
+from the output, we could see that the variables that we want to include in our model are: `babysex`  `bhead`  `blength` `fincome`  `gaweeks`   `parity` `ppbmi` ` smoken`  `wtgain`
+
 
 ```{r}
-baby_df %>% 
-  modelr::add_residuals(model_fit) %>% 
-  ggplot(aes(x = gaweeks, y = resid)) + 
-  geom_point()
+model_fit = lm(bwt ~ babysex + bhead + blength + fincome + gaweeks + parity + ppbmi + smoken + wtgain, data = baby_df) 
 ```
+
+
+```{r}
+  baby_df %>% 
+  add_residuals(model_fit) %>% 
+  add_predictions(model_fit) %>% 
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point(alpha = 0.5) +
+  labs( title = "Residuals against Fitted Values", x = "Fitted Value", y = "Residuals"
+  )
+```
+
+
+#####One using length at birth and gestational age as predictors (main effects only)
+
+
+```{r}
+
+
+cross_validation = 
+  crossv_mc(baby_df, 100) %>% 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble)) %>% 
+  mutate(
+    model_one = map(train, ~lm(bwt ~ babysex + bhead + blength + fincome + gaweeks + parity + ppbmi + smoken + wtgain, data = .x)),
+    model_main = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+    model_inter = map(train, ~lm(bwt ~ bhead * blength * babysex, data = .x))) %>% 
+  mutate(
+    rmse_one = map2_dbl(model_one, test, ~rmse(model = .x, data = .y)),
+    rmse_main = map2_dbl(model_main, test, ~rmse(model = .x, data = .y)),
+    rmse_inter = map2_dbl(model_inter, test, ~rmse(model = .x, data = .y)),
+  )
+
+rmse_plot = 
+  cross_validation  %>% 
+  select(starts_with("rmse")) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_"
+  ) %>% 
+  ggplot(aes(x = model, y = rmse, fill = model)) +
+  geom_violin(alpha = 0.5) +
+  labs( title = "Cross Validation Comparisons", x = "Model", y = "RMSE")
+   
+rmse_plot
+
+```
+According to the average RMSE value and the violin plot, the my  model ( `babysex`+ `bhead`+ `blength`+ `fincome`+ `gaweeks`+`parity`+ `ppbmi`+ `smoken`+ `wtgain`) has the lowes residuals. Therefore, it's the best model among the three.The model with only main effects ( `blength` +`gaweeks` ) has the highest residual and hence is the worst one.The model with  length, sex, and all interactions the mig-level of residuals among the three models/ TTherefore, it's the second best model. 
+
+
+
+
+
+
+
