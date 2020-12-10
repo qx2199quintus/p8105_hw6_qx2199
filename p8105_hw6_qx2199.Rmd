@@ -151,12 +151,12 @@ baby_df %>%
 baby_df %>% 
   anyNA()
 summary(baby_df)
-levels(factor(baby_df$wtgain))
+
 ```
 
 The birthweight data contains `r baby_df %>% nrow()` rows, `r baby_df %>% ncol()` columns, and no missing data. 
 
-#### fit a model
+#### Fit a model
 
 fitting a model by using backward method. We want to find out the predictors to put in our model. 
 
@@ -171,12 +171,12 @@ From the output, we could see that some of the p-values for predictors are less 
 Therefore, the pridictors that we put in our model are:`babysex`  `bhead`  `blength` `delwt` `fincome` `gaweeks` `mheight`  `mrace` `parity` `ppwt` ` smoken`
 
 
-#### fit the model with these variables:
+#### Fit the model with these variables:
 ```{r}
 model_fit = lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken, data = baby_df) 
 ```
 
-#### plot of model residuals against fitted values
+#### Plot of model residuals against fitted values
 
 ```{r}
   baby_df %>% 
@@ -187,12 +187,12 @@ model_fit = lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mhe
 ```
 
 
-From the residual plot, we could see that the distribution for most of the residuals are not heavily skewed,especially when the predicted value is higher than 2000. However, when the predicted values are smaller than 2000, there are outliers--when the predicted value decrease, residuals increase.
+From the residual plot, we could see that the distribution for most of the residuals are not heavily skewed, the center for most of the residuals are around 0, especially when the predicted value is higher than 2000. However, when the predicted values are smaller than 2000, there are outliers--as the predicted value decrease, residuals increase.
 
 
-*Compare your model to two others:
-One using length at birth and gestational age as predictors (main effects only)
-One using head circumference, length, sex, and all interactions (including the three-way interaction) between these
+#### Compare your model to two others:
+One using length at birth and gestational age as predictors (main effects only)--model main
+One using head circumference, length, sex, and all interactions (including the three-way interaction) between these--model inter
 
 ```{r}
 #cross validation
@@ -228,11 +228,11 @@ rmse_plot
 
 ```
 
-According to the average RMSE value and the violin plot,  my model (with preictors: `babysex`  `bhead`  `blength` `delwt` `fincome`  `gaweeks` `mheight` `mrace` `parity` `ppwt` ` smoken` ) has the lowest RMSE. Therefore, it's the best model among the three.The model with only main effects ( `blength` `gaweeks` ) has the highest RMSE and hence is the worst one.The model with  length, sex, and all interactions has the medium RMSE among the three models. Therefore, it's the second best model. 
+According to the plot,my model (model_one, with preictors: `babysex`  `bhead`  `blength` `delwt` `fincome`  `gaweeks` `mheight` `mrace` `parity` `ppwt` ` smoken` ) has the lowest RMSE. Therefore, it's the best model among the three models.The model with only main effects ( `blength` `gaweeks` ) has the highest RMSE and hence is the worst one.The model with  length, sex, and all interactions has the medium RMSE among the three models. Therefore, it's the second best model. 
 
 
 
-#problem 3
+### Problem 3
 
 load the data 
 ```{r}
@@ -250,7 +250,7 @@ weather_df =
   select(name, id, everything())
 ```
 
-*Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities. Plot the distribution of your estimates, and describe these in words.
+Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities. 
 
 ```{r}
 set.seed(1)
@@ -273,19 +273,27 @@ weather_final=
 
 ```
 
+*Plot the distribution of your estimates, and describe these in words.
 
+#### Plot the distribution for r-square
 ```{r}
  weather_final %>% 
   ggplot(aes(x = r_squared)) + 
   geom_density()
 ```
 For the r squared distribution plot, it's little-bit left-skewed with peak that around 0.913.
+
+
+#### Plot the distribution for log(beta0 *beta1)
 ```{r}
  weather_final %>% 
   ggplot(aes(x = log_one_zero)) + 
   geom_density()
 ```
-The log(beta0 *beta1) plot,it's approximately normal-distributed, with t with peak that around 2.012
+The log(beta0 *beta1) is  approximately normal-distributed, with peak that around 2.012
+
+
+#### 95% confidence interval for r-square 
 
 ```{r}
 r_ci = 
@@ -300,6 +308,9 @@ r_ci
 
 95%CI for r-square is (0.894, 0.927)
 
+
+
+#### 95% confidence interval for log(beta0 * beta1)
 ```{r}
 log_ci = 
   weather_final %>% 
@@ -310,6 +321,7 @@ log_ci =
   knitr::kable(digits =3)
 log_ci
 ```
+
 95%CI for log(beta0 * beta1) is (1.965, 2.059)
 
 
