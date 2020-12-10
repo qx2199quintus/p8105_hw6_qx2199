@@ -1,6 +1,7 @@
 ---
 title: "P8105_HW#6_qx2199"
-date: "12/08/2020"
+date: "12/06/2020"
+author: Qianhui Xu
 output: github_document
 ---
 
@@ -156,6 +157,8 @@ summary(baby_df)
 
 The birthweight data contains `r baby_df %>% nrow()` rows, `r baby_df %>% ncol()` columns, and no missing data. 
 
+The birthweight data contains variables such as `babysex`  `bhead`  `blength` `delwt`   `gaweeks` `mheight`  `parity` `ppwt` ` smoken` `fincome` `mrace` `bwt` `frace` `malform` `menarche` `momage` `pnumlbw` `pnumgsa` `ppbmi` `wtgain` . The data could be used to explore the effects of several variables on a child’s birthweight.
+
 #### Fit a model
 
 fitting a model by using backward method. We want to find out the predictors to put in our model. 
@@ -273,7 +276,7 @@ weather_final=
 
 ```
 
-*Plot the distribution of your estimates, and describe these in words.
+Plot the distribution of your estimates, and describe these in words.
 
 #### Plot the distribution for r-square
 ```{r}
