@@ -167,14 +167,17 @@ step(direction='backward')
 summary(model_crude)
 ```
 
-From the output, we could see that some of the p-values for predictors are less than 0.05, such as the `babysex`  `bhead`  `blength` `delwt`   `gaweeks` `mheight`  `parity` `ppwt` ` smoken` , we should include then in the model.Also, for some predictors such as  such as `fincome` and `mrace`, the p-values are slightly greater than 0.05. Thef=refore, in terms of predictor selection, we could also select them into our model. 
+From the output, we could see that some of the p-values for predictors are less than 0.05, such as the `babysex`  `bhead`  `blength` `delwt`   `gaweeks` `mheight`  `parity` `ppwt` ` smoken` , we should include then in the model.Also, for some predictors such as  such as `fincome` and `mrace`, the p-values are slightly greater than 0.05. Therefore, in terms of predictor selection, we could also select them into our model. 
+Therefore, the pridictors that we put in our model are:`babysex`  `bhead`  `blength` `delwt` `fincome` `gaweeks` `mheight`  `mrace` `parity` `ppwt` ` smoken`
+
 
 #### fit the model with these variables:
 ```{r}
 model_fit = lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mheight + mrace + parity + ppwt + smoken, data = baby_df) 
 ```
 
-#### p
+#### plot of model residuals against fitted values
+
 ```{r}
   baby_df %>% 
   add_residuals(model_fit) %>% 
@@ -182,7 +185,9 @@ model_fit = lm(bwt ~ babysex + bhead + blength + delwt + fincome + gaweeks + mhe
   ggplot(aes(x = pred, y = resid)) +
   geom_point(alpha = 0.5) + labs( title = "Residuals against Fitted Values", x = "Fitted Value", y = "Residuals")
 ```
-From the residual plot, we could see that most of the residuals are not heavily skewed,especially when the predicted value is higher than 2000g. The true residual value are around slightly more than 3000. However, when the predicted values are smaller than 2000, there are outliers; when the predicted value decrease, residuals increase.
+
+
+From the residual plot, we could see that the distribution for most of the residuals are not heavily skewed,especially when the predicted value is higher than 2000. However, when the predicted values are smaller than 2000, there are outliers--when the predicted value decrease, residuals increase.
 
 
 *Compare your model to two others:
@@ -190,6 +195,7 @@ One using length at birth and gestational age as predictors (main effects only)
 One using head circumference, length, sex, and all interactions (including the three-way interaction) between these
 
 ```{r}
+#cross validation
 cross_validation = 
   crossv_mc(baby_df, 100) %>% 
   mutate(
@@ -204,7 +210,7 @@ cross_validation =
     rmse_main = map2_dbl(model_main, test, ~rmse(model = .x, data = .y)),
     rmse_inter = map2_dbl(model_inter, test, ~rmse(model = .x, data = .y)),
   )
-
+# plot for RMSE
 rmse_plot = 
   cross_validation  %>% 
   select(starts_with("rmse")) %>% 
